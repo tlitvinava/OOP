@@ -1,21 +1,10 @@
-from figures.figure import Figure
+class Circle:
+    def __init__(self, x, y, radius, color):
+        self.id = None
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.color = color
 
-class Circle(Figure):
-    def __init__(self, params):
-        super().__init__(params)
-        self.x = params['x']
-        self.y = params['y']
-        self.radius = params['radius']
-        self.color = params['color']
-
-    def draw(self, canvas):
-        canvas.create_oval(self.x - self.radius, self.y - self.radius,
-                           self.x + self.radius, self.y + self.radius,
-                           fill=self.color, outline=self.color)
-
-    def move(self, dx, dy):
-        self.x += dx
-        self.y += dy
-
-    def erase(self, canvas):
-        pass
+    def __str__(self):
+        return f"Circle {self.id} {self.x} {self.y} {self.radius} {self.color}"

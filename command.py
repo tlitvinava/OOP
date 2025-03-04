@@ -2,15 +2,25 @@ class Command:
     def __init__(self, canvas):
         self.canvas = canvas
         self.history = []
+        self.undo_stack = []
 
     def execute(self, action):
-        # добавить логику выполнения действия
-        pass
+        action_type, figure = action
+        if action_type == 'draw':
+            self.canvas.draw_figure(figure)
+        elif action_type == 'erase':
+            self.canvas.erase_figure(figure)
+        self.history.append(action)
+        self.canvas.display()
 
     def undo(self):
-        # логика отката действия
-        pass
+        if self.history:
+            last_action = self.history.pop()
+            self.undo_stack.append(last_action)
+            self.canvas.display()
 
     def redo(self):
-        # логика повторного выполнения действия
-        pass
+        if self.undo_stack:
+            action = self.undo_stack.pop()
+            self.execute(action)
+            self.canvas.display()
