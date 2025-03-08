@@ -10,11 +10,25 @@ from figures.star import Star
 from figures.triangle import Triangle
 
 def main():
+    # Инициализация холста и командного менеджера
     canvas = Canvas()
     command = Command(canvas)
 
+    # Словарь доступных фигур
+    figure_classes = {
+        "circle": Circle,
+        "hexagon": Hexagon,
+        "line": Line,
+        "rectangle": Rectangle,
+        "rhombus": Rhombus,
+        "square": Square,
+        "star": Star,
+        "triangle": Triangle,
+    }
+
+    # Основной цикл программы
     while True:
-        print("Меню:")
+        print("\nМеню:")
         print("1. Нарисовать фигуру")
         print("2. Удалить фигуру")
         print("3. Отменить действие")
@@ -23,51 +37,46 @@ def main():
         print("6. Выйти")
         choice = input("Выберите действие: ")
 
-        if choice == '1':
+        if choice == '1':  # Нарисовать фигуру
             figure_type = input("Введите тип фигуры (circle, hexagon, line, rectangle, rhombus, square, star, triangle): ").lower()
-            params = list(map(int, input("Введите параметры (через пробел): ").split()))
-            color = input("Введите цвет: ")
-
-            if figure_type == "circle":
-                figure = Circle(*params, color)
-            elif figure_type == "hexagon":
-                figure = Hexagon(*params, color)
-            elif figure_type == "line":
-                figure = Line(*params, color)
-            elif figure_type == "rectangle":
-                figure = Rectangle(*params, color)
-            elif figure_type == "rhombus":
-                figure = Rhombus(*params, color)
-            elif figure_type == "square":
-                figure = Square(*params, color)
-            elif figure_type == "star":
-                figure = Star(params, color)
-            elif figure_type == "triangle":
-                figure = Triangle(*params, color)
-            else:
-                print("Неизвестная фигура. Доступные фигуры: circle, hexagon, line, rectangle, rhombus, square, star, triangle")
+            figure_class = figure_classes.get(figure_type)
+            if not figure_class:
+                print("Неизвестная фигура. Попробуйте снова.")
                 continue
 
-            command.execute(('draw', figure))
-            print(f"Нарисована {figure_type} с параметрами {params} и цветом {color}")
+            print(figure_class.get_input_prompt())  # Печатаем инструкцию для параметров
+            params = input("Введите параметры (через пробел): ").split()
+            try:
+                # Конвертируем параметры в числа (кроме цвета) и создаем фигуру
+                figure = figure_class(*map(int, params[:-1]), params[-1])
+                command.execute(('draw', figure))  # Выполняем команду рисования
+                print(f"\nНарисована фигура: {figure}")
+                print("Отрисовка ASCII:")
+                figure.draw_ascii()
+            except (ValueError, TypeError):
+                print("Ошибка ввода параметров. Попробуйте снова.")
 
-        elif choice == '2':
-            figure_id = int(input("Введите ID фигуры для удаления: "))
-            command.execute(('erase', figure_id))
-            print(f"Удалена фигура с ID {figure_id}")
+        elif choice == '2':  # Удалить фигуру
+            try:
+                figure_id = int(input("Введите ID фигуры для удаления: "))
+                command.execute(('erase', figure_id))
+                print(f"Удалена фигура с ID {figure_id}")
+            except ValueError:
+                print("Ошибка: ID должен быть числом.")
 
-        elif choice == '3':
+        elif choice == '3':  # Отменить действие
             command.undo()
             print("Последнее действие отменено")
 
-        elif choice == '4':
+        elif choice == '4':  # Повторить действие
             command.redo()
             print("Последнее отмененное действие повторено")
 
-        elif choice == '5':
+        elif choice == '5':  # Показать холст
+            print("\nТекущий холст:")
             canvas.display()
 
-        elif choice == '6':
+        elif choice == '6':  # Выход
             print("Выход из программы")
             break
 
