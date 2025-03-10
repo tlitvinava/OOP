@@ -1,12 +1,7 @@
 from canvas import Canvas
 from command import Command
 from figures.circle import Circle
-from figures.hexagon import Hexagon
-from figures.line import Line
 from figures.rectangle import Rectangle
-from figures.rhombus import Rhombus
-from figures.square import Square
-from figures.star import Star
 from figures.triangle import Triangle
 
 def main():
@@ -17,12 +12,7 @@ def main():
     # Словарь доступных фигур
     figure_classes = {
         "circle": Circle,
-        "hexagon": Hexagon,
-        "line": Line,
         "rectangle": Rectangle,
-        "rhombus": Rhombus,
-        "square": Square,
-        "star": Star,
         "triangle": Triangle,
     }
 
