@@ -4,117 +4,195 @@ from figures.circle import Circle
 from figures.rectangle import Rectangle
 from figures.triangle import Triangle
 
+# main.py
+from canvas import Canvas
+from ansi_colors import ANSI_COLORS  # Импортируем ANSI коды2
+
+# main.py
+from canvas import Canvas
+from ansi_colors import ANSI_COLORS  # Импортируем ANSI коды
+
 def main():
-    # Инициализация холста и командного менеджера
-    canvas = Canvas()
-    command = Command(canvas)
-
-    # Словарь доступных фигур
-    figure_classes = {
-        1: Circle,
-        2: Rectangle,
-        3: Triangle,
-    }
-
-    # Основной цикл программы
+    canvas = None
     while True:
         print("\nМеню:")
-        print("1. Нарисовать фигуру")
-        print("2. Удалить фигуру")
-        print("3. Переместить фигуру")
-        print("4. Установить фон фигуры")
-        print("5. Сохранить холст в файл")
-        print("6. Загрузить холст из файла")
-        print("7. Отменить действие")
-        print("8. Повторить действие")
-        print("9. Показать холст")
-        print("10. Выйти")
+        print('1. Отобразить холст')
+        print('2. Нарисовать фигуру')
+        print('3. Удалить фигуру')
+        print('4. Переместить фигуру')
+        print('5. Экспортировать холст в файл')
+        print('6. Импортировать холст из файла')
+        print('7. Изменить цвет символов')
+        print('8. Изменить цвет фона')
+        print('9. Undo')  # Новый пункт меню
+        print('10. Redo')  # Новый пункт меню
 
-        choice = input("Выберите действие: ")
+        choice = int(input("Выберите: "))
+        if choice == 1:
+            if canvas is None:
+                print("У вас нету холста. Создайте новый холст:")
+                height = int(input("Введите высоту: "))
+                width = int(input("Введите ширину: "))
+                canvas = Canvas(width, height)
 
-        if choice == '1':  # Нарисовать фигуру
-            print("\nДоступные фигуры:")
-            for num, figure_class in figure_classes.items():
-                print(f"{num}. {figure_class.__name__}")
+            print("Текущий холст:")
+            canvas.display()
+        
+        elif choice == 2:
+            if canvas is None:
+                print("У вас нету холста. Создайте новый холст:")
+                height = int(input("Введите высоту: "))
+                width = int(input("Введите ширину: "))
+                canvas = Canvas(width, height)
 
-            try:
-                figure_choice = int(input("Введите номер фигуры для рисования: "))
-                figure_class = figure_classes.get(figure_choice)
-                if not figure_class:
-                    print("Неизвестная фигура. Попробуйте снова.")
-                    continue
+            print("Какую фигуру вы хотите нарисовать?")
+            print("1. Прямоугольник")
+            print("2. Круг")
+            print("3. Треугольник")
+            shape_choice = int(input("Выберите фигуру: "))
 
-                print(figure_class.get_input_prompt())  # Печатаем инструкцию для параметров
-                params = input("Введите параметры (через пробел): ").split()
-                try:
-                    # Конвертируем параметры в числа (кроме цвета) и создаем фигуру
-                    figure = figure_class(*map(int, params[:-1]), params[-1])
-                    command.execute(('draw', figure))  # Выполняем команду рисования
-                    print(f"\nНарисована фигура: {figure}")
-                    print("Отрисовка ASCII:")
-                    figure.draw_ascii()
-                except (ValueError, TypeError):
-                    print("Ошибка ввода параметров. Попробуйте снова.")
-            except ValueError:
-                print("Ошибка: Введите номер фигуры.")
+            if shape_choice == 1:
+                print("Введите координаты прямоугольника:")
+                x1 = int(input("x1: "))
+                y1 = int(input("y1: "))
+                x2 = int(input("x2: "))
+                y2 = int(input("y2: "))
+                rectangle = Rectangle(x1, y1, x2, y2)
+                canvas.draw_figure(rectangle)
 
-        elif choice == '2':  # Удалить фигуру
-            try:
-                figure_id = int(input("Введите ID фигуры для удаления: "))
-                command.execute(('erase', figure_id))
-                print(f"Удалена фигура с ID {figure_id}")
-            except ValueError:
-                print("Ошибка: ID должен быть числом.")
+            elif shape_choice == 2:
+                print("Введите координаты круга:")
+                x = int(input("Центр x: "))
+                y = int(input("Центр y: "))
+                radius = int(input("Радиус: "))
+                circle = Circle(x, y, radius)
+                canvas.draw_figure(circle)
 
-        elif choice == '3':  # Переместить фигуру
-            try:
-                figure_id = int(input("Введите ID фигуры для перемещения: "))
-                new_x = int(input("Введите новое значение X: "))
-                new_y = int(input("Введите новое значение Y: "))
-                command.execute(('move', figure_id, new_x, new_y))
-                print(f"Перемещена фигура с ID {figure_id} на ({new_x}, {new_y})")
-            except ValueError:
-                print("Ошибка: Введите корректные значения.")
+            elif shape_choice == 3:
+                print("Введите координаты треугольника:")
+                x1 = int(input("x1: "))
+                y1 = int(input("y1: "))
+                x2 = int(input("x2: "))
+                y2 = int(input("y2: "))
+                x3 = int(input("x3: "))
+                y3 = int(input("y3: "))
+                triangle = Triangle(x1, y1, x2, y2, x3, y3)
+                canvas.draw_figure(triangle)
 
-        elif choice == '4':  # Установить фон фигуры
-            try:
-                figure_id = int(input("Введите ID фигуры для установки фона: "))
-                background_color = input("Введите цвет фона: ")
-                command.execute(('set_background', figure_id, background_color))
-                print(f"Установлен фон для фигуры с ID {figure_id} цветом {background_color}")
-                # Делаем обновление холста
-                canvas.display()
-            except ValueError:
-                print("Ошибка: ID должен быть числом.")
-
-        elif choice == '5':  # Сохранить холст в файл
-            filename = input("Введите имя файла для сохранения: ")
-            command.save_canvas(filename)
-            print(f"Холст сохранен в файл {filename}")
-
-        elif choice == '6':  # Загрузить холст из файла
-            filename = input("Введите имя файла для загрузки: ")
-            command.load_canvas(filename)
-            print(f"Холст загружен из файла {filename}")
-
-        elif choice == '7':  # Отменить действие
-            command.undo()
-            print("Последнее действие отменено")
-
-        elif choice == '8':  # Повторить действие
-            command.redo()
-            print("Последнее отмененное действие повторено")
-
-        elif choice == '9':  # Показать холст
-            print("\nТекущий холст:")
+            print("Текущий холст:")
             canvas.display()
 
-        elif choice == '10':  # Выход
-            print("Выход из программы")
-            break
+        elif choice == 3:
+            if canvas is None:
+                print("У вас нету холста. Создайте новый холст:")
+                height = int(input("Введите высоту: "))
+                width = int(input("Введите ширину: "))
+                canvas = Canvas(width, height)
 
-        else:
-            print("Неверный выбор. Попробуйте снова.")
+            figure_id = int(input("Введите ID фигуры для удаления: "))
+            canvas.remove_figure(figure_id)
 
-if __name__ == "__main__":
+            print("Текущий холст после удаления фигуры:")
+            canvas.display()
+
+        elif choice == 4:
+            if canvas is None:
+                print("У вас нету холста. Создайте новый холст:")
+                height = int(input("Введите высоту: "))
+                width = int(input("Введите ширину: "))
+                canvas = Canvas(width, height)
+
+            figure_id = int(input("Введите ID фигуры для перемещения: "))
+            for figure in canvas.figures:
+                if figure.id == figure_id:
+                    if isinstance(figure, Rectangle):
+                        new_x1 = int(input("Введите новый x1: "))
+                        new_y1 = int(input("Введите новый y1: "))
+                        new_x2 = int(input("Введите новый x2: "))
+                        new_y2 = int(input("Введите новый y2: "))
+                        canvas.move_figure(figure_id, (new_x1, new_y1, new_x2, new_y2))
+                    elif isinstance(figure, Circle):
+                        new_x = int(input("Введите новый центр x: "))
+                        new_y = int(input("Введите новый центр y: "))
+                        canvas.move_figure(figure_id, (new_x, new_y))
+                    elif isinstance(figure, Triangle):
+                        new_x1 = int(input("Введите новый x1: "))
+                        new_y1 = int(input("Введите новый y1: "))
+                        new_x2 = int(input("Введите новый x2: "))
+                        new_y2 = int(input("Введите новый y2: "))
+                        new_x3 = int(input("Введите новый x3: "))
+                        new_y3 = int(input("Введите новый y3: "))
+                        canvas.move_figure(figure_id, (new_x1, new_y1, new_x2, new_y2, new_x3, new_y3))
+                    break
+            else:
+                print("Фигура с таким ID не найдена.")
+
+            print("Текущий холст после перемещения фигуры:")
+            canvas.display()
+
+        elif choice == 5:
+            if canvas is None:
+                print("У вас нету холста. Создайте новый холст:")
+                height = int(input("Введите высоту: "))
+                width = int(input("Введите ширину: "))
+                canvas = Canvas(width, height)
+
+            filename = input("Введите имя файла для экспорта (например, canvas.txt): ")
+            with open(filename, 'w') as file:
+                for row in canvas.state:
+                    file.write(''.join(row) + '\n')
+            print(f"Холст экспортирован в файл {filename}.")
+
+        elif choice == 6:
+            filename = input("Введите имя файла для импорта (например, canvas.txt): ")
+            try:
+                with open(filename, 'r') as file:
+                    lines = file.readlines()
+                    if canvas is None:
+                        height = len(lines)
+                        width = max(len(line.strip()) for line in lines)
+                        canvas = Canvas(width, height)
+
+                    for i, line in enumerate(lines):
+                        canvas.state[i] = list(line.strip())
+                print(f"Холст импортирован из файла {filename}.")
+                canvas.display()
+            except FileNotFoundError:
+                print("Файл не найден. Пожалуйста, проверьте имя файла.")
+            except Exception as e:
+                print(f"Произошла ошибка: {e}")
+
+        elif choice == 7:
+            print("Выберите цвет символов:")
+            for color in ANSI_COLORS.keys():
+                print(color)
+            color_choice = input("Введите цвет: ")
+            if color_choice in ANSI_COLORS:
+                canvas.set_symbol_color(color_choice)
+                print(f"Цвет символов изменен на {color_choice}.")
+            else:
+                print("Неверный выбор цвета.")
+
+        elif choice == 8:
+            print("Выберите цвет фона:")
+            for color in ANSI_COLORS.keys():
+                print(color)
+            color_choice = input("Введите цвет: ")
+            if color_choice in ANSI_COLORS:
+                canvas.set_background_color(color_choice)
+                print(f"Цвет фона изменен на {color_choice}.")
+            else:
+                print("Неверный выбор цвета.")
+
+        elif choice == 9:
+            canvas.undo()
+            print("Отменено последнее действие.")
+            canvas.display()
+
+        elif choice == 10:
+            canvas.redo()
+            print("Возврат к последнему действию.")
+            canvas.display()
+
+if __name__ == '__main__':
     main()
