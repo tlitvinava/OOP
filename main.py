@@ -1,5 +1,4 @@
 from canvas import Canvas
-from command import Command
 from figures.circle import Circle
 from figures.rectangle import Rectangle
 from figures.triangle import Triangle
