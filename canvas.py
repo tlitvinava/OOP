@@ -1,12 +1,7 @@
 from figures.rectangle import Rectangle
 from figures.circle import Circle
 from figures.triangle import Triangle
-from ansi_colors import ANSI_COLORS  # Импортируем ANSI коды2
-# canvas.py
-from ansi_colors import ANSI_COLORS  # Импортируем ANSI коды
-
-# canvas.py
-from ansi_colors import ANSI_COLORS  # Импортируем ANSI коды
+from ansi_colors import ANSI_COLORS  
 
 class Canvas:
     def __init__(self, width, height):
@@ -15,10 +10,10 @@ class Canvas:
         self.state = Canvas.init_state(width, height)
         self.figures = []
         self.next_id = 1
-        self.symbol_color = ANSI_COLORS["сброс"]  # Начальный цвет символов (сброс)
-        self.background_color = ANSI_COLORS["сброс"]  # Начальный цвет фона (сброс)
-        self.undo_stack = []  # Стек для undo
-        self.redo_stack = []  # Стек для redo
+        self.symbol_color = ANSI_COLORS["reset"]  # Initial symbol color (reset)
+        self.background_color = ANSI_COLORS["reset"]  # Initial background color (reset)
+        self.undo_stack = []  # Stack for undo
+        self.redo_stack = []  # Stack for redo
 
     @staticmethod
     def init_state(width, height):
@@ -43,21 +38,21 @@ class Canvas:
             self.update_state()
 
     def draw_figure(self, figure):
-        self.save_state()  # Сохраняем состояние перед изменением
+        self.save_state()  # Save state before change
         figure.id = self.next_id
         self.figures.append(figure)
         self.update_state()
 
     def remove_figure(self, figure_id):
-        self.save_state()  # Сохраняем состояние перед изменением
+        self.save_state()  # Save state before change
         self.figures = [fig for fig in self.figures if fig.id != figure_id]
         self.update_state()
 
     def move_figure(self, figure_id, new_coordinates):
-        self.save_state()  # Сохраняем состояние перед изменением
+        self.save_state()  # Save state before change
         for figure in self.figures:
             if figure.id == figure_id:
-                figure.move(*new_coordinates)  # Предполагается, что у фигуры есть метод move
+                figure.move(*new_coordinates)  # Assuming the figure has a move method
                 break
         self.update_state()
 
@@ -70,20 +65,20 @@ class Canvas:
         if isinstance(figure, Rectangle):
             upper_row = state[figure.y1 - 1]
             for i in range(figure.x1 - 1, figure.x2):
-                upper_row[i] = self.symbol_color + '*' + ANSI_COLORS["сброс"]
+                upper_row[i] = self.symbol_color + '*' + ANSI_COLORS["reset"]
             lower_row = state[figure.y2 - 1]
             for i in range(figure.x1 - 1, figure.x2):
-                lower_row[i] = self.symbol_color + '*' + ANSI_COLORS["сброс"]
+                lower_row[i] = self.symbol_color + '*' + ANSI_COLORS["reset"]
             for i in range(figure.y1 - 1, figure.y2):
-                state[i][figure.x1 - 1] = self.symbol_color + '*' + ANSI_COLORS["сброс"]
-                state[i][figure.x2 - 1] = self.symbol_color + '*' + ANSI_COLORS["сброс"]
+                state[i][figure.x1 - 1] = self.symbol_color + '*' + ANSI_COLORS["reset"]
+                state[i][figure.x2 - 1] = self.symbol_color + '*' + ANSI_COLORS["reset"]
         
         elif isinstance(figure, Circle):
             for y in range(figure.y - figure.radius, figure.y + figure.radius + 1):
                 for x in range(figure.x - figure.radius, figure.x + figure.radius + 1):
                     if (x - figure.x) ** 2 + (y - figure.y) ** 2 <= figure.radius ** 2:
                         if 0 <= x < self.width and 0 <= y < self.height:
-                            state[y][x] = self.symbol_color + '*' + ANSI_COLORS["сброс"]
+                            state[y][x] = self.symbol_color + '*' + ANSI_COLORS["reset"]
 
         elif isinstance(figure, Triangle):
             self.draw_line(figure.x1, figure.y1, figure.x2, figure.y2, '*', state)
@@ -99,7 +94,7 @@ class Canvas:
 
         while True:
             if 0 <= x1 < self.width and 0 <= y1 < self.height:
-                state[y1][x1] = self.symbol_color + char + ANSI_COLORS["сброс"]
+                state[y1][x1] = self.symbol_color + char + ANSI_COLORS["reset"]
             if x1 == x2 and y1 == y2:
                 break
             err2 = err * 2
@@ -113,15 +108,15 @@ class Canvas:
     def set_background_color(self, color):
         if color in ANSI_COLORS:
             self.background_color = ANSI_COLORS[color]
-            self.display()  # Перерисовываем холст с новым цветом фона
+            self.display()  # Redraw the canvas with the new background color
 
     def set_symbol_color(self, color):
         if color in ANSI_COLORS:
             self.symbol_color = ANSI_COLORS[color]
-            self.display()  # Перерисовываем холст с новым цветом символов
+            self.display()  # Redraw the canvas with the new symbol color
 
     def display(self):
-        print(self.background_color, end="")  # Установка цвета фона
+        print(self.background_color, end="")  # Set the background color
         for row in self.state:
             print("".join(row))
-        print(ANSI_COLORS["сброс"], end="")  # Сброс цвета
+        print(ANSI_COLORS["reset"], end="")  # Reset color
