@@ -26,10 +26,9 @@ def main():
         print('4. Move Shape')
         print('5. Export Canvas to File')
         print('6. Import Canvas from File')
-        print('7. Change Symbol Color')
-        print('8. Change Background Color')
-        print('9. Undo')  # New menu option
-        print('10. Redo')  # New menu option
+        print('7. Change Background Color')
+        print('8. Undo')  # New menu option
+        print('9. Redo')  # New menu option
         choice = get_int_input("Choose an option (1-10): ", 1, 10)
 
         if choice == 1:
