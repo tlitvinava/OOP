@@ -51,7 +51,7 @@ class TestCanvas(unittest.TestCase):
         self.assertEqual(self.canvas.state[5][4], ANSI_COLORS["red"] + '*'+ ANSI_COLORS["reset"] )
 
     def test_draw_triangle(self):
-        triangle = Triangle(1, 1, 5, 5, ANSI_COLORS["red"])
+        triangle = Triangle(1, 1, 6, 8, 10, ANSI_COLORS["red"])
         self.canvas.draw_figure(triangle)
         self.assertEqual(self.canvas.figures[0].id, 1)
         self.assertEqual(self.canvas.state[2][1], ANSI_COLORS["red"] + '*'+ ANSI_COLORS["reset"] )

@@ -82,7 +82,7 @@ class Canvas:
 
     def draw_line(self, x1, y1, x2, y2, char, state):
         if not (0 <= x1 < self.width and 0 <= y1 < self.height and 0 <= x2 < self.width and 0 <= y2 < self.height):
-            return  # Прекращаем выполнение, если координаты за пределами холста
+            return  
 
         dx = abs(x2 - x1)
         dy = abs(y2 - y1)
@@ -92,7 +92,7 @@ class Canvas:
 
         while True:
             if 0 <= x1 < self.width and 0 <= y1 < self.height:
-                state[int(y1)][int(x1)] = char  # Рисуем символ с заданным цветом
+                state[int(y1)][int(x1)] = char  
             if x1 == x2 and y1 == y2:
                 break
             err2 = err * 2
@@ -106,13 +106,13 @@ class Canvas:
     def set_figure_color(self, figure_id, color):
         for figure in self.figures:
             if figure.id == figure_id:
-                figure.color = color  # Изменяем цвет фигуры
-                self.update_state()   # Перерисовываем канвас
+                figure.color = color  
+                self.update_state()   
                 return True
         return False        
 
     def display(self):
-        print(self.background_color, end="")  # Установка цвета фона
+        print(self.background_color, end="")  
         for row in self.state:
             print("".join(row))
-        print(ANSI_COLORS["reset"], end="")  # Сброс цвета
+        print(ANSI_COLORS["reset"], end="")  

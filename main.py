@@ -4,6 +4,9 @@ from figures.rectangle import Rectangle
 from figures.triangle import Triangle
 from ansi_colors import ANSI_COLORS  
 
+def can_form_triangle(side_a, side_b, side_c):
+    return (side_a + side_b > side_c) and (side_a + side_c > side_b) and (side_b + side_c > side_a)
+
 def get_int_input(prompt, min_value=None, max_value=None):
     while True:
         try:
@@ -84,15 +87,24 @@ def main():
                 canvas.draw_figure(circle)
 
             elif shape_choice == 3:
-                print("Enter the base and height of the right triangle:")
-                base = get_int_input("Base length: ", 1)
-                height = get_int_input("Height length: ", 1)
+
+                while True:
+                    print("Enter the lengths of the three sides of the triangle:")
+                    side_a = get_int_input("Length of side A: ", 1)
+                    side_b = get_int_input("Length of side B: ", 1)
+                    side_c = get_int_input("Length of side C: ", 1)
+
+                    if can_form_triangle(side_a, side_b, side_c):
+                        break
+                    else:
+                        print("The entered sides cannot form a triangle. Please enter valid sides.")
 
                 print("Enter the coordinates of the right angle vertex (bottom left corner):")
                 x1 = get_int_input("x1: ", 1, canvas.width)
                 y1 = get_int_input("y1: ", 1, canvas.height)
                 color = get_color_input("Enter color for the triangle: ")
-                triangle = Triangle(x1, y1, base, height, color)
+
+                triangle = Triangle(x1, y1, side_a, side_b, side_c, color)
                 canvas.draw_figure(triangle)
 
             print("Current canvas:")
@@ -187,7 +199,7 @@ def main():
             if color_choice in ANSI_COLORS:
                 if canvas.set_figure_color(figure_id, ANSI_COLORS[color_choice]):
                     print(f"Color changed to {color_choice}.")
-                    canvas.display()  # Перерисовываем канвас после изменения цвета
+                    canvas.display() 
                 else:
                     print("Figure not found.")
             else:
