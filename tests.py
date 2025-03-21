@@ -20,8 +20,8 @@ class TestCanvas(unittest.TestCase):
         rectangle = Rectangle(2, 2, 5, 5)
         self.canvas.draw_figure(rectangle)
         self.assertEqual(self.canvas.figures[0].id, 1)
-        self.assertEqual(self.canvas.state[2][1], ANSI_COLORS["reset"] + '*')
-        self.assertEqual(self.canvas.state[4][4], ANSI_COLORS["reset"] + '*')
+        self.assertEqual(self.canvas.state[2][1], ANSI_COLORS["red"] + '*'+ ANSI_COLORS["reset"] )
+        self.assertEqual(self.canvas.state[4][4], ANSI_COLORS["red"] + '*'+ ANSI_COLORS["reset"] )
 
     def test_remove_figure(self):
         rectangle = Rectangle(2, 2, 5, 5)
@@ -48,13 +48,13 @@ class TestCanvas(unittest.TestCase):
         circle = Circle(5, 5, 2)
         self.canvas.draw_figure(circle)
         self.assertEqual(self.canvas.figures[0].id, 1)
-        self.assertEqual(self.canvas.state[5][4], ANSI_COLORS["reset"] + '*')
+        self.assertEqual(self.canvas.state[5][4], ANSI_COLORS["red"] + '*'+ ANSI_COLORS["reset"] )
 
     def test_draw_triangle(self):
-        triangle = Triangle(1, 1, 5, 1, 3, 4)
+        triangle = Triangle(1, 1, 5, 5, ANSI_COLORS["red"])
         self.canvas.draw_figure(triangle)
         self.assertEqual(self.canvas.figures[0].id, 1)
-        self.assertEqual(self.canvas.state[1][0], ANSI_COLORS["reset"] + '*')
+        self.assertEqual(self.canvas.state[2][1], ANSI_COLORS["red"] + '*'+ ANSI_COLORS["reset"] )
 
 if __name__ == '__main__':
     unittest.main()
