@@ -1,11 +1,9 @@
-# menu.py
-
 from text_editor import TextEditor, TextDecorator
-from document import Document, DocumentManager
+from document import DocumentManager
 from user import User
 from command import UndoCommand, RedoCommand
 
-def document_management_menu(doc_manager, active_user):
+def document_management_menu(doc_manager, active_user, users):
     while True:
         print("\n--- Меню управления документами ---")
         print("1. Создать документ")
@@ -18,13 +16,36 @@ def document_management_menu(doc_manager, active_user):
         choice = input("Введите номер действия: ").strip()
 
         if choice == "1":
-            # Если пользователь создан, значит active_user присутствует
             title = input("Введите название документа: ").strip()
-            doc = doc_manager.create_document(title)
-            if doc:
-                print(f"Документ '{title}' успешно создан.")
+            print("Выберите тип документа:")
+            print("1. PlainText")
+            print("2. Markdown")
+            print("3. RichText")
+            doc_type_choice = input("Введите номер типа: ").strip()
+            if doc_type_choice == "1":
+                doc_type = "PlainText"
+            elif doc_type_choice == "2":
+                doc_type = "Markdown"
+            elif doc_type_choice == "3":
+                doc_type = "RichText"
             else:
-                print("Не удалось создать документ с таким названием.")
+                print("Неверный выбор типа документа.")
+                continue
+
+            print("Назначьте права доступа для пользователей:")
+            print("(Оставьте поле пустым, если доступ не требуется)")
+            # Здесь создаём список назначенных прав. Уже активный пользователь (владелец) получит роль "admin"
+            permissions = {}
+            for user in users:
+                if user.username == active_user.username:
+                    continue  # Пропускаем владельца, т.к. он уже имеет роль admin
+                role_choice = input(f"Введите роль для пользователя '{user.username}' (viewer/editor) или Enter для пропуска: ").strip().lower()
+                if role_choice in ["viewer", "editor"]:
+                    permissions[user.username] = role_choice
+
+            doc = doc_manager.create_document(title, doc_type, owner=active_user, permissions=permissions)
+            if doc:
+                print(f"Документ '{title}' успешно создан с типом {doc_type}.")
         elif choice == "2":
             title = input("Введите название документа для открытия: ").strip()
             doc = doc_manager.open_document(title)
@@ -65,6 +86,8 @@ def document_management_menu(doc_manager, active_user):
         elif choice == "5":
             file_path = input("Введите путь к файлу для загрузки: ").strip()
             try:
+                # Здесь можно реализовать логику загрузки (по аналогии с Document.load)
+                from document import Document
                 doc = Document.load(file_path)
                 doc_manager.documents[doc.title] = doc
                 print(f"Документ '{doc.title}' успешно загружен. Его контент:")
@@ -78,7 +101,6 @@ def document_management_menu(doc_manager, active_user):
             break
         else:
             print("Неверный выбор, попробуйте ещё раз.")
-
 
 def text_editor_menu(editor):
     decorator = TextDecorator(editor)
@@ -139,7 +161,7 @@ def text_editor_menu(editor):
             print("Выберите тип форматирования:")
             print("a. Жирный (Bold)")
             print("b. Курсив (Italic)")
-            print("c. Подчёркнутый (Underline)")
+            print("c. Подчёркивание (Underline)")
             style = input("Введите ваш выбор (a/b/c): ").strip().lower()
             if style == "a":
                 decorator.bold()
@@ -168,66 +190,49 @@ def text_editor_menu(editor):
         else:
             print("Неверный выбор, попробуйте ещё раз.")
 
-
 def user_management_menu(users):
     while True:
         print("\n--- Меню управления пользователями ---")
         print("1. Создать нового пользователя")
-        print("2. Изменить роль пользователя")
-        print("3. Показать список пользователей")
-        print("4. Вернуться в главное меню")
+        print("2. Показать список пользователей")
+        print("3. Вернуться в главное меню")
         choice = input("Введите номер действия: ").strip()
 
         if choice == "1":
             username = input("Введите имя нового пользователя: ").strip()
             if username:
-                role = input("Введите роль (admin/editor/viewer): ").strip().lower()
-                # Если пользователь создаётся через админа, можно разрешить задавать роль
-                new_user = User(username, role)
+                new_user = User(username)
                 users.append(new_user)
-                print(f"Пользователь '{username}' с ролью '{role}' создан.")
+                print(f"Пользователь '{username}' создан.")
             else:
                 print("Имя пользователя не может быть пустым.")
         elif choice == "2":
-            username = input("Введите имя пользователя для изменения роли: ").strip()
-            found = False
-            for user in users:
-                if user.username == username:
-                    new_role = input("Введите новую роль (admin/editor/viewer): ").strip().lower()
-                    user.change_role(new_role)
-                    print(f"Роль пользователя '{username}' изменена на '{new_role}'.")
-                    found = True
-                    break
-            if not found:
-                print("Пользователь не найден.")
-        elif choice == "3":
             if users:
                 print("\n--- Список пользователей ---")
                 for user in users:
                     print(user)
             else:
                 print("Список пользователей пуст.")
-        elif choice == "4":
+        elif choice == "3":
             break
         else:
             print("Неверный выбор, попробуйте ещё раз.")
 
-
 def main():
     doc_manager = DocumentManager()
-    editor = TextEditor()
+    editor = TextEditor()  # объект текстового редактора
     users = []
     active_user = None
 
-    # Сначала требуем создание хотя бы одного пользователя с правами администратора
+    # Создаём первого пользователя (администратора) – его создаём без роли, роль задается при создании документа.
     while not users:
-        print("\nСоздайте первого пользователя (обязателен администратор)!")
-        username = input("Введите имя администратора: ").strip()
+        print("\nСоздайте первого пользователя:")
+        username = input("Введите имя пользователя: ").strip()
         if username:
-            admin = User(username, "admin")
-            users.append(admin)
-            active_user = admin
-            print(f"Пользователь '{admin.username}' создан с правами администратора!\n")
+            user = User(username)
+            users.append(user)
+            active_user = user
+            print(f"Пользователь '{user.username}' создан и назначен активным.")
         else:
             print("Имя пользователя не может быть пустым. Пожалуйста, попробуйте снова.")
 
@@ -242,8 +247,7 @@ def main():
         choice = input("Выберите номер действия: ").strip()
 
         if choice == "1":
-            # Создавать и редактировать документы может только активный пользователь
-            document_management_menu(doc_manager, active_user)
+            document_management_menu(doc_manager, active_user, users)
         elif choice == "2":
             text_editor_menu(editor)
         elif choice == "3":
@@ -251,7 +255,7 @@ def main():
         elif choice == "4":
             print("\n--- Выберите пользователя ---")
             for idx, user in enumerate(users):
-                print(f"{idx + 1}. {user.username} (Роль: {user.role})")
+                print(f"{idx + 1}. {user.username}")
             try:
                 sel = int(input("Введите номер пользователя для установки активного: ")) - 1
                 if 0 <= sel < len(users):
@@ -269,3 +273,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
