@@ -1,17 +1,95 @@
-from text_editor import TextEditor, TextDecorator
+# menu.py
+
+from text_editor import TextEditor, text_editor_menu
 from document import DocumentManager
-from user import User
+from user import User, get_user_role_for_document
 from command import UndoCommand, RedoCommand
+import user_manager 
+from settings import EditorSettings, HistoryManager
+from storage import LocalStorageStrategy, CloudStorageStrategy, SQLiteStorageStrategy
+
+def save_document_in_storage(doc):
+    print("\nВыберите способ сохранения документа:")
+    print("1. Локально")
+    print("2. В облако")
+    print("3. В базу данных (SQLite)")
+    choice = input("Введите номер выбора: ").strip()
+    
+    if choice == "1":
+        strategy = LocalStorageStrategy()
+    elif choice == "2":
+        strategy = CloudStorageStrategy()
+    elif choice == "3":
+        strategy = SQLiteStorageStrategy()
+    else:
+        print("Неверный выбор, сохранение отменено.")
+        return
+
+    # Для локальных и облачных стратегий запрашиваем формат сохранения:
+    if choice in ["1", "2"]:
+        print("Выберите формат файла:")
+        print("1. TXT")
+        print("2. JSON")
+        print("3. XML")
+        format_choice = input("Введите номер формата: ").strip()
+        if format_choice == "1":
+            format_type = "TXT"
+        elif format_choice == "2":
+            format_type = "JSON"
+        elif format_choice == "3":
+            format_type = "XML"
+        else:
+            print("Неверный выбор формата, сохранение отменено.")
+            return
+    else:
+        # Для SQLite формат не требуется
+        format_type = None
+
+    strategy.save(doc, format_type)
+
+
+def settings_menu():
+    settings = EditorSettings()
+    history_manager = HistoryManager()
+    while True:
+        print("\n--- Настройки и персонализация ---")
+        print("1. Изменить настройки редактора")
+        print("2. Просмотреть историю изменений")
+        print("3. Вернуться в главное меню")
+        выбор = input("Выберите действие: ").strip()
+        if выбор == "1":
+            print(f"Текущие настройки: {settings}")
+            новая_тема = input("Введите новую тему (например, Светлая/Тёмная): ").strip()
+            if новая_тема:
+                settings.set_theme(новая_тема)
+            try:
+                новый_размер = int(input("Введите новый размер шрифта (целое число): ").strip())
+                settings.set_font_size(новый_размер)
+            except ValueError:
+                print("Неверный формат размера шрифта. Значение не изменено.")
+            print("Обновлённые настройки:", settings)
+        elif выбор == "2":
+            история = history_manager.view_history()
+            if история:
+                print("\n--- История изменений ---")
+                for entry in история:
+                    print(f"{entry['timestamp']}: Документ '{entry['document']}' был {entry['action']} пользователем {entry['user']}")
+            else:
+                print("История пуста.")
+        elif выбор == "3":
+            break
+        else:
+            print("Неверный выбор. Попробуйте снова.")
 
 def document_management_menu(doc_manager, active_user, users):
     while True:
         print("\n--- Меню управления документами ---")
         print("1. Создать документ")
         print("2. Открыть документ")
-        print("3. Редактировать документ")
-        print("4. Сохранить документ")
-        print("5. Загрузить документ из файла")
-        print("6. Удалить документ")
+        print("3. Сохранить документ")
+        print("4. Загрузить документ из файла")
+        print("5. Удалить документ")
+        print("6. Показать открытые документы")
         print("7. Вернуться в главное меню")
         choice = input("Введите номер действия: ").strip()
 
@@ -32,61 +110,69 @@ def document_management_menu(doc_manager, active_user, users):
                 print("Неверный выбор типа документа.")
                 continue
 
-            print("Назначьте права доступа для пользователей:")
-            print("(Оставьте поле пустым, если доступ не требуется)")
-            # Здесь создаём список назначенных прав. Уже активный пользователь (владелец) получит роль "admin"
-            permissions = {}
+            # Владелец получает автоматически роль "admin" для данного документа,
+            # а для остальных пользователей запрашиваем роль (viewer/editor) и обновляем их записи.
+            active_user.documents.append({"title": title, "role": "admin"})
             for user in users:
                 if user.username == active_user.username:
-                    continue  # Пропускаем владельца, т.к. он уже имеет роль admin
-                role_choice = input(f"Введите роль для пользователя '{user.username}' (viewer/editor) или Enter для пропуска: ").strip().lower()
+                    continue
+                role_choice = input(
+                    f"Введите роль для пользователя '{user.username}' (viewer/editor) или Enter для пропуска: "
+                ).strip().lower()
                 if role_choice in ["viewer", "editor"]:
-                    permissions[user.username] = role_choice
-
-            doc = doc_manager.create_document(title, doc_type, owner=active_user, permissions=permissions)
+                    user.documents.append({"title": title, "role": role_choice})
+            doc = doc_manager.create_document(title, doc_type, owner=active_user)
             if doc:
                 print(f"Документ '{title}' успешно создан с типом {doc_type}.")
         elif choice == "2":
             title = input("Введите название документа для открытия: ").strip()
             doc = doc_manager.open_document(title)
             if doc:
-                doc.open(active_user)
+                # Получаем роль доступа, используя функцию (например, по записям пользователя)
+                role = None
+                for entry in active_user.documents:
+                    if entry.get("title") == doc.title:
+                        role = entry.get("role")
+                        break
+                if role in ["editor", "admin"]:
+                    # Если активный пользователь является владельцем (admin),
+                    # выводим уведомления для данного документа перед открытием
+                    if role == "admin":
+                        # Фильтруем уведомления, где упоминается название документа
+                        doc_notifications = [note for note in active_user.notifications if doc.title in note]
+                        if doc_notifications:
+                            print(f"\nУ вас есть уведомления для документа '{doc.title}':")
+                            for note in doc_notifications:
+                                print(" -", note)
+                            # Очищаем уведомления, связанные с этим документом
+                            active_user.notifications = [note for note in active_user.notifications if doc.title not in note]
+                    doc.is_open = True
+                    print(f"Открытие документа '{doc.title}' в режиме редактирования...")
+                    from text_editor import TextEditor, text_editor_menu
+                    editor_instance = TextEditor()
+                    editor_instance.content = doc.content  # Загружаем текущее содержимое документа
+                    text_editor_menu(editor_instance)
+                    # После выхода из редактора обновляем содержимое документа
+                    # Вместо простого присваивания можно вызвать метод edit, если хотите добавить уведомление
+                    doc.edit(active_user, editor_instance.content)
+                elif role == "viewer":
+                    doc.is_open = True
+                    print(f"Документ '{doc.title}' открыт в режиме только для чтения:")
+                    print(doc.content)
+                else:
+                    print(f"У пользователя '{active_user.username}' нет доступа к документу '{doc.title}'.")
             else:
                 print("Документ не найден.")
         elif choice == "3":
-            title = input("Введите название документа для редактирования: ").strip()
-            doc = doc_manager.open_document(title)
-            if doc:
-                new_content = input("Введите новый контент для документа: ")
-                doc.edit(active_user, new_content)
-            else:
-                print("Документ не найден.")
-        elif choice == "4":
             title = input("Введите название документа для сохранения: ").strip()
             doc = doc_manager.open_document(title)
             if doc:
-                print("Выберите формат для сохранения:")
-                print("1. TXT")
-                print("2. JSON")
-                print("3. XML")
-                format_choice = input("Введите номер формата: ").strip()
-                if format_choice == "1":
-                    doc.save("TXT")
-                    print("Документ сохранён в формате TXT.")
-                elif format_choice == "2":
-                    doc.save("JSON")
-                    print("Документ сохранён в формате JSON.")
-                elif format_choice == "3":
-                    doc.save("XML")
-                    print("Документ сохранён в формате XML.")
-                else:
-                    print("Неверный выбор формата.")
+                save_document_in_storage(doc)
             else:
                 print("Документ не найден.")
-        elif choice == "5":
+        elif choice == "4":
             file_path = input("Введите путь к файлу для загрузки: ").strip()
             try:
-                # Здесь можно реализовать логику загрузки (по аналогии с Document.load)
                 from document import Document
                 doc = Document.load(file_path)
                 doc_manager.documents[doc.title] = doc
@@ -94,108 +180,31 @@ def document_management_menu(doc_manager, active_user, users):
                 print(doc.content)
             except Exception as e:
                 print("Ошибка при загрузке документа:", e)
-        elif choice == "6":
+        elif choice == "5":
             title = input("Введите название документа для удаления: ").strip()
             doc_manager.delete_document(title)
-        elif choice == "7":
-            break
-        else:
-            print("Неверный выбор, попробуйте ещё раз.")
-
-def text_editor_menu(editor):
-    decorator = TextDecorator(editor)
-    while True:
-        print("\n--- Меню текстового редактора ---")
-        print("1. Добавить текст")
-        print("2. Редактировать текст")
-        print("3. Вырезать текст")
-        print("4. Копировать текст")
-        print("5. Вставить текст")
-        print("6. Поиск слова")
-        print("7. Применить форматирование")
-        print("8. Отменить действие (Undo)")
-        print("9. Повторить действие (Redo)")
-        print("10. Показать текущее содержимое")
-        print("11. Вернуться в главное меню")
-        choice = input("Введите номер действия: ").strip()
-
-        if choice == "1":
-            text = input("Введите текст для добавления: ")
-            editor.type_text(text)
-            print("Текст добавлен.")
-        elif choice == "2":
-            new_content = input("Введите новый текст: ")
-            editor.edit_text(new_content)
-            print("Содержимое изменено.")
-        elif choice == "3":
-            try:
-                start = int(input("Введите начальный индекс: "))
-                end = int(input("Введите конечный индекс: "))
-                editor.cut(start, end)
-                print("Фрагмент вырезан.")
-            except ValueError:
-                print("Неверный ввод индексов.")
-        elif choice == "4":
-            try:
-                start = int(input("Введите начальный индекс: "))
-                end = int(input("Введите конечный индекс: "))
-                editor.copy(start, end)
-                print("Фрагмент скопирован.")
-            except ValueError:
-                print("Неверный ввод индексов.")
-        elif choice == "5":
-            try:
-                position = int(input("Введите позицию для вставки: "))
-                editor.paste(position)
-                print("Фрагмент вставлен.")
-            except ValueError:
-                print("Неверный ввод индекса.")
         elif choice == "6":
-            word = input("Введите слово для поиска: ")
-            positions = editor.search(word)
-            if positions:
-                print("Слово найдено на позициях:", positions)
+            open_docs = [doc.title for doc in doc_manager.documents.values() if doc.is_open]
+            if open_docs:
+                print("\n--- Открытые документы ---")
+                for title in open_docs:
+                    print(title)
             else:
-                print("Слово не найдено.")
+                print("Нет открытых документов.")
         elif choice == "7":
-            print("Выберите тип форматирования:")
-            print("a. Жирный (Bold)")
-            print("b. Курсив (Italic)")
-            print("c. Подчёркивание (Underline)")
-            style = input("Введите ваш выбор (a/b/c): ").strip().lower()
-            if style == "a":
-                decorator.bold()
-                print("Применён жирный шрифт.")
-            elif style == "b":
-                decorator.italic()
-                print("Применён курсив.")
-            elif style == "c":
-                decorator.underline()
-                print("Применено подчёркивание.")
-            else:
-                print("Неверный выбор форматирования.")
-        elif choice == "8":
-            cmd = UndoCommand(editor)
-            cmd.execute()
-            print("Операция отменена.")
-        elif choice == "9":
-            cmd = RedoCommand(editor)
-            cmd.execute()
-            print("Операция повторена.")
-        elif choice == "10":
-            print("\n--- Текущее содержимое редактора ---")
-            print(editor)
-        elif choice == "11":
             break
         else:
             print("Неверный выбор, попробуйте ещё раз.")
 
-def user_management_menu(users):
+
+def user_management_menu(users, doc_manager):
     while True:
         print("\n--- Меню управления пользователями ---")
         print("1. Создать нового пользователя")
         print("2. Показать список пользователей")
-        print("3. Вернуться в главное меню")
+        print("3. Сохранить пользователей")
+        print("4. Загрузить пользователей")
+        print("5. Вернуться в главное меню")
         choice = input("Введите номер действия: ").strip()
 
         if choice == "1":
@@ -214,34 +223,48 @@ def user_management_menu(users):
             else:
                 print("Список пользователей пуст.")
         elif choice == "3":
+            user_manager.save_users(users)
+        elif choice == "4":
+            loaded_users, raw_data = user_manager.load_users()
+            if loaded_users:
+                users.clear()
+                users.extend(loaded_users)
+                print("Список пользователей обновлён из загруженных данных.")
+            else:
+                print("Нет сохранённых пользователей для загрузки.")
+        elif choice == "5":
             break
         else:
             print("Неверный выбор, попробуйте ещё раз.")
 
 def main():
     doc_manager = DocumentManager()
-    editor = TextEditor()  # объект текстового редактора
+    
+    # Загружаем или создаём пользователей – здесь уже реализована логика загрузки
+    loaded_users, _ = user_manager.load_users()
     users = []
-    active_user = None
-
-    # Создаём первого пользователя (администратора) – его создаём без роли, роль задается при создании документа.
-    while not users:
-        print("\nСоздайте первого пользователя:")
-        username = input("Введите имя пользователя: ").strip()
-        if username:
-            user = User(username)
-            users.append(user)
-            active_user = user
-            print(f"Пользователь '{user.username}' создан и назначен активным.")
-        else:
-            print("Имя пользователя не может быть пустым. Пожалуйста, попробуйте снова.")
-
+    if loaded_users:
+        users.extend(loaded_users)
+        active_user = users[0]
+        print(f"Пользователи успешно загружены. Активный пользователь: {active_user.username}")
+    else:
+        print("Сохранённых пользователей не найдено.")
+        while True:
+            username = input("Введите имя первого пользователя: ").strip()
+            if username:
+                active_user = User(username)
+                users.append(active_user)
+                print(f"Пользователь '{active_user.username}' создан и назначен активным.")
+                break
+            else:
+                print("Имя пользователя не может быть пустым. Пожалуйста, попробуйте снова.")
+            
     while True:
         print("\n=== Консольный редактор документов ===")
         print("Активный пользователь:", active_user)
         print("1. Управление документами")
-        print("2. Текстовый редактор")
-        print("3. Управление пользователями")
+        print("2. Управление пользователями")
+        print("3. Настройки и персонализация")
         print("4. Сменить активного пользователя")
         print("5. Выход из приложения")
         choice = input("Выберите номер действия: ").strip()
@@ -249,23 +272,25 @@ def main():
         if choice == "1":
             document_management_menu(doc_manager, active_user, users)
         elif choice == "2":
-            text_editor_menu(editor)
+            user_management_menu(users, doc_manager)
         elif choice == "3":
-            user_management_menu(users)
+            settings_menu()
         elif choice == "4":
             print("\n--- Выберите пользователя ---")
             for idx, user in enumerate(users):
                 print(f"{idx + 1}. {user.username}")
             try:
-                sel = int(input("Введите номер пользователя для установки активного: ")) - 1
+                sel = int(input("Введите номер пользователя: ")) - 1
                 if 0 <= sel < len(users):
                     active_user = users[sel]
                     print(f"Активный пользователь изменён на {active_user.username}.")
                 else:
                     print("Неверный номер пользователя.")
             except ValueError:
-                print("Некорректный ввод. Ожидается число.")
+                print("Некорректный ввод, ожидается число.")
         elif choice == "5":
+            # Перед выходом можно сохранить пользователей
+            user_manager.save_users(users)
             print("Выход из приложения. До свидания!")
             break
         else:
@@ -273,4 +298,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

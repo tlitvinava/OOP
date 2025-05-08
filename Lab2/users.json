@@ -1,0 +1,24 @@
+[
+    {
+        "username": "admin",
+        "documents": [
+            {
+                "title": "kkk",
+                "role": "admin"
+            },
+            {
+                "title": "not",
+                "role": "admin"
+            }
+        ]
+    },
+    {
+        "username": "n_user",
+        "documents": [
+            {
+                "title": "not",
+                "role": "editor"
+            }
+        ]
+    }
+]
