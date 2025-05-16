@@ -156,7 +156,7 @@ def text_editor_menu(editor):
         elif choice == "11":
             break
         else:
-            print("Неверный выбор, попробуйте ещё раз.")
+            print("Неверный выбор, попробуйте ещё раз.") 
 
 # Пример использования
 if __name__ == "__main__":
