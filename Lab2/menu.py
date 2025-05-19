@@ -1,5 +1,3 @@
-# menu.py
-
 from text_editor import TextEditor, text_editor_menu
 from document import DocumentManager
 from user import User, get_user_role_for_document
@@ -25,7 +23,6 @@ def save_document_in_storage(doc):
         print("Неверный выбор, сохранение отменено.")
         return
 
-    # Для локальных и облачных стратегий запрашиваем формат сохранения:
     if choice in ["1", "2"]:
         print("Выберите формат файла:")
         print("1. TXT")
@@ -42,7 +39,6 @@ def save_document_in_storage(doc):
             print("Неверный выбор формата, сохранение отменено.")
             return
     else:
-        # Для SQLite формат не требуется
         format_type = None
 
     strategy.save(doc, format_type)
@@ -110,8 +106,6 @@ def document_management_menu(doc_manager, active_user, users):
                 print("Неверный выбор типа документа.")
                 continue
 
-            # Владелец получает автоматически роль "admin" для данного документа,
-            # а для остальных пользователей запрашиваем роль (viewer/editor) и обновляем их записи.
             active_user.documents.append({"title": title, "role": "admin"})
             for user in users:
                 if user.username == active_user.username:
@@ -128,32 +122,25 @@ def document_management_menu(doc_manager, active_user, users):
             title = input("Введите название документа для открытия: ").strip()
             doc = doc_manager.open_document(title)
             if doc:
-                # Получаем роль доступа, используя функцию (например, по записям пользователя)
                 role = None
                 for entry in active_user.documents:
                     if entry.get("title") == doc.title:
                         role = entry.get("role")
                         break
                 if role in ["editor", "admin"]:
-                    # Если активный пользователь является владельцем (admin),
-                    # выводим уведомления для данного документа перед открытием
                     if role == "admin":
-                        # Фильтруем уведомления, где упоминается название документа
                         doc_notifications = [note for note in active_user.notifications if doc.title in note]
                         if doc_notifications:
                             print(f"\nУ вас есть уведомления для документа '{doc.title}':")
                             for note in doc_notifications:
                                 print(" -", note)
-                            # Очищаем уведомления, связанные с этим документом
                             active_user.notifications = [note for note in active_user.notifications if doc.title not in note]
                     doc.is_open = True
                     print(f"Открытие документа '{doc.title}' в режиме редактирования...")
                     from text_editor import TextEditor, text_editor_menu
                     editor_instance = TextEditor()
-                    editor_instance.content = doc.content  # Загружаем текущее содержимое документа
+                    editor_instance.content = doc.content  
                     text_editor_menu(editor_instance)
-                    # После выхода из редактора обновляем содержимое документа
-                    # Вместо простого присваивания можно вызвать метод edit, если хотите добавить уведомление
                     doc.edit(active_user, editor_instance.content)
                 elif role == "viewer":
                     doc.is_open = True
@@ -240,7 +227,6 @@ def user_management_menu(users, doc_manager):
 def main():
     doc_manager = DocumentManager()
     
-    # Загружаем или создаём пользователей – здесь уже реализована логика загрузки
     loaded_users, _ = user_manager.load_users()
     users = []
     if loaded_users:
@@ -289,7 +275,6 @@ def main():
             except ValueError:
                 print("Некорректный ввод, ожидается число.")
         elif choice == "5":
-            # Перед выходом можно сохранить пользователей
             user_manager.save_users(users)
             print("Выход из приложения. До свидания!")
             break

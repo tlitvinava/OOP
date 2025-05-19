@@ -9,7 +9,7 @@ class TextEditor:
 
     def type_text(self, text):
         self.history.append(self.content)
-        self.redo_stack.clear()  # Очистка redo_stack при новом действии
+        self.redo_stack.clear() 
         self.content += text
 
     def edit_text(self, new_content):
@@ -44,12 +44,12 @@ class TextEditor:
 
     def undo(self):
         if self.history:
-            self.redo_stack.append(self.content)  # Сохраняем текущее состояние для redo
+            self.redo_stack.append(self.content) 
             self.content = self.history.pop()
 
     def redo(self):
         if self.redo_stack:
-            self.history.append(self.content)  # Сохраняем текущее состояние для undo
+            self.history.append(self.content)  
             self.content = self.redo_stack.pop()
 
     def __str__(self):
@@ -158,39 +158,38 @@ def text_editor_menu(editor):
         else:
             print("Неверный выбор, попробуйте ещё раз.") 
 
-# Пример использования
-if __name__ == "__main__":
-    editor = TextEditor()
+# if __name__ == "__main__":
+#     editor = TextEditor()
 
-    # Ввод текста
-    editor.type_text("Hello, World!")
-    print(editor)  # Output: Hello, World!
+#     # Ввод текста
+#     editor.type_text("Hello, World!")
+#     print(editor)  # Output: Hello, World!
 
-    # Редактирование текста
-    editor.edit_text("Hello, Universe!")
-    print(editor)  # Output: Hello, Universe!
+#     # Редактирование текста
+#     editor.edit_text("Hello, Universe!")
+#     print(editor)  # Output: Hello, Universe!
 
-    # Копирование, вырезание и вставка
-    editor.cut(7, 15)  # Вырезаем "Universe"
-    print(editor)  # Output: Hello, !
-    editor.paste(7)  # Вставляем "Universe" обратно
-    print(editor)  # Output: Hello, Universe!
+#     # Копирование, вырезание и вставка
+#     editor.cut(7, 15)  # Вырезаем "Universe"
+#     print(editor)  # Output: Hello, !
+#     editor.paste(7)  # Вставляем "Universe" обратно
+#     print(editor)  # Output: Hello, Universe!
 
-    # Поиск слова
-    positions = editor.search("Universe")
-    print("Positions of 'Universe':", positions)  # Output: Positions of 'Universe': [7]
+#     # Поиск слова
+#     positions = editor.search("Universe")
+#     print("Positions of 'Universe':", positions)  # Output: Positions of 'Universe': [7]
 
-    # Форматирование текста
-    decorator = TextDecorator(editor)
-    decorator.bold()
-    print(editor)  # Output: **Hello, Universe!**
-    decorator.italic()
-    print(editor)  # Output: *Hello, Universe!*
-    decorator.underline()
-    print(editor)  # Output: __Hello, Universe!__
+#     # Форматирование текста
+#     decorator = TextDecorator(editor)
+#     decorator.bold()
+#     print(editor)  # Output: **Hello, Universe!**
+#     decorator.italic()
+#     print(editor)  # Output: *Hello, Universe!*
+#     decorator.underline()
+#     print(editor)  # Output: __Hello, Universe!__
 
-    # Использование undo и redo
-    editor.undo()
-    print(editor)  # Output: **Hello, Universe!**
-    editor.redo()
-    print(editor)  # Output: *Hello, Universe!*
+#     # Использование undo и redo
+#     editor.undo()
+#     print(editor)  # Output: **Hello, Universe!**
+#     editor.redo()
+#     print(editor)  # Output: *Hello, Universe!*

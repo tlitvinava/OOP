@@ -9,8 +9,8 @@ class Document:
         self.title = title
         self.content = content
         self.doc_type = doc_type
-        self.owner = owner  # Ожидается, что owner – объект User
-        self.is_open = True  # Новый документ считается открытым
+        self.owner = owner  
+        self.is_open = True  
 
     def open(self, user):
         print(f"Документ '{self.title}' открыт.")
@@ -18,9 +18,7 @@ class Document:
     def edit(self, user, new_content):
         self.content = new_content
         print(f"Пользователь '{user.username}' отредактировал документ '{self.title}'.")
-        # Запись события редактирования в историю
         HistoryManager().add_entry(self.title, user.username, "отредактирован")
-        # Если редактирует не владелец, уведомляем владельца
         if self.owner and user.username != self.owner.username:
             notification = f"Ваш документ '{self.title}' изменён пользователем '{user.username}'."
             if hasattr(self.owner, "notifications"):
@@ -68,8 +66,6 @@ class Document:
             raise ValueError("Неподдерживаемый формат")
 
 
-# Специфические типы документов
-
 class PlainTextDocument(Document):
     def __init__(self, title, content="", owner=None):
         super().__init__(title, content, doc_type="PlainText", owner=owner)
@@ -81,9 +77,6 @@ class MarkdownDocument(Document):
 class RichTextDocument(Document):
     def __init__(self, title, content="", owner=None):
         super().__init__(title, content, doc_type="RichText", owner=owner)
-
-
-# Реализация Фабрики
 
 class DocumentFactory:
     @staticmethod
@@ -97,9 +90,6 @@ class DocumentFactory:
         else:
             raise ValueError(f"Unsupported document type: {doc_type}")
 
-
-# Класс-менеджер документов
-
 class DocumentManager:
     def __init__(self):
         self.documents = {}
@@ -110,7 +100,6 @@ class DocumentManager:
             return None
         doc = DocumentFactory.create_document(doc_type, title, content="", owner=owner)
         if permissions:
-            # Обновляем права доступа, заданные администратором
             doc.permissions.update(permissions)
         self.documents[title] = doc
         return doc

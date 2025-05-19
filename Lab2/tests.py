@@ -6,17 +6,10 @@ import unittest
 import shutil
 import pickle
 import warnings
-
-
 from document import Document, DocumentManager  
 from user import User
 from settings import EditorSettings, HistoryManager
-
-
 from storage import LocalStorageStrategy, SQLiteStorageStrategy, CloudStorageStrategy
-
-
-
     
 class TestDocumentFunctionality(unittest.TestCase):
     def setUp(self):
