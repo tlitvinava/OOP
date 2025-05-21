@@ -25,7 +25,7 @@ def main():
             try:
                 quote = service.add_student_with_quote(student_dto)
                 print("Студент успешно добавлен!")
-                print(f"Мотивационная цитата: '{quote.content}' – {quote.author}")
+                print(f"Мотивационная цитата: \"{quote.content}\" – {quote.author}")
             except Exception as e:
                 print("Ошибка при добавлении студента:", e)
 
@@ -35,11 +35,12 @@ def main():
                 print("Нет студентов для отображения.")
             for idx, s in enumerate(students, start=1):
                 print(f"{idx}. {s['name']}, оценка: {s['grade']}")
-
+                if "quote" in s:
+                    quote = s["quote"]
+                    print(f"   Цитата: \"{quote['content']}\" - {quote['author']}")
         elif choice == "3":
             print("Выход из программы.")
             break
-
         else:
             print("Неверная опция!")
 

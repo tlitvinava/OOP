@@ -12,9 +12,13 @@ class StudentRepository:
             with open(self.filepath, "w", encoding="utf-8") as f:
                 json.dump([], f)
 
-    def add_student(self, student: Student):
+    def add_student(self, student: Student, quote=None):
+        """Добавляет студента вместе с цитатой (если передана) в JSON хранилище."""
         students = self.get_all_students()
-        students.append({"name": student.name, "grade": student.grade})
+        record = {"name": student.name, "grade": student.grade}
+        if quote:
+            record["quote"] = {"content": quote.content, "author": quote.author}
+        students.append(record)
         with open(self.filepath, "w", encoding="utf-8") as f:
             json.dump(students, f, ensure_ascii=False, indent=4)
 

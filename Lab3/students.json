@@ -1,0 +1,46 @@
+[
+    {
+        "name": "артем",
+        "grade": 10.0
+    },
+    {
+        "name": "тая",
+        "grade": 7.0
+    },
+    {
+        "name": "леша",
+        "grade": 9.0
+    },
+    {
+        "name": "никита",
+        "grade": 1.0
+    },
+    {
+        "name": "мяу",
+        "grade": 1999.0
+    },
+    {
+        "name": "мф",
+        "grade": 5.0
+    },
+    {
+        "name": "ми",
+        "grade": 5.0
+    },
+    {
+        "name": "nikita",
+        "grade": 2.0,
+        "quote": {
+            "content": "You can't choose up sides on a round world.",
+            "author": "Wayne Dyer"
+        }
+    },
+    {
+        "name": "Alice",
+        "grade": 85.0,
+        "quote": {
+            "content": "Iron rusts from disuse; water loses its purity from stagnation... even so does inaction sap the vigor of the mind.",
+            "author": "Leonardo da Vinci"
+        }
+    }
+]
