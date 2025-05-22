@@ -1,10 +1,8 @@
-# integration/quote_api_adapter.py
 
 import requests
 import urllib3
 from domain.factories import Factory
 
-# Отключаем предупреждение о небезопасном соединении (InsecureRequestWarning)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class QuoteApiAdapter:

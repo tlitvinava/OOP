@@ -1,5 +1,3 @@
-# presentation/main.py
-
 from application.student_service import StudentService
 from domain.dtos import StudentDTO
 

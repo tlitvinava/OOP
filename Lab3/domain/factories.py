@@ -1,5 +1,3 @@
-# domain/factories.py
-
 from domain.student import Student
 from domain.dtos import StudentDTO, QuoteDTO
 

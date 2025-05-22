@@ -1,5 +1,3 @@
-# domain/dtos.py
-
 class StudentDTO:
     def __init__(self, name: str, grade: float):
         self.name = name

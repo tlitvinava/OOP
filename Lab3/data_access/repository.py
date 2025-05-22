@@ -1,5 +1,3 @@
-# data_access/repository.py
-
 import json
 import os
 from domain.student import Student
@@ -7,7 +5,6 @@ from domain.student import Student
 class StudentRepository:
     def __init__(self, filepath="students.json"):
         self.filepath = filepath
-        # Если файла не существует, создаем его с пустым списком
         if not os.path.exists(self.filepath):
             with open(self.filepath, "w", encoding="utf-8") as f:
                 json.dump([], f)
